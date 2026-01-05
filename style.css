@@ -149,35 +149,41 @@ body {
 input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
 input[type=number] { -moz-appearance: textfield; }
-/* 2. THÊM CSS CHO NÚT TÍCH (SUBMIT BTN) */
+/* --- CODE NÚT TÍCH V (Fixed) --- */
+
+/* 1. Đẩy chữ sang trái để không đè lên nút tích */
+.elastic-btn input {
+    padding-right: 60px !important; /* Quan trọng */
+}
+
+/* 2. Style cho nút tích */
 .submit-btn {
     position: absolute;
     right: 15px; /* Cách lề phải */
     top: 50%;
-    transform: translateY(-50%) scale(0); /* Mặc định thu nhỏ = 0 */
+    transform: translateY(-50%) scale(0); /* Mặc định ẩn */
     background: none;
     border: none;
-    color: var(--accent); /* Màu xanh neon theo theme */
-    font-size: 1.8rem; /* To vừa đủ nhìn cho sang */
+    color: var(--accent);
+    font-size: 1.8rem;
     cursor: pointer;
     opacity: 0;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Hiệu ứng nảy lò xo */
-    pointer-events: none; /* Không bấm được khi đang ẩn */
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: none;
     z-index: 20;
     padding: 5px;
     display: flex; justify-content: center; align-items: center;
 }
 
-/* Khi nút Elastic mở ra thì nút Tích cũng hiện ra */
+/* Khi nút to mở ra thì nút tích nảy ra */
 .elastic-btn.expand .submit-btn {
     opacity: 1;
     transform: translateY(-50%) scale(1);
     pointer-events: auto;
-    transition-delay: 0.2s; /* Hiện trễ 1 chút cho nhịp nhàng */
+    transition-delay: 0.2s;
 }
 
-/* Hiệu ứng khi bấm vào nút tích */
+/* Hiệu ứng bấm */
 .submit-btn:active {
-    transform: translateY(-50%) scale(0.8); /* Nhún xuống khi bấm */
-    color: var(--text-main); /* Đổi màu nháy sáng */
+    transform: translateY(-50%) scale(0.8);
 }
