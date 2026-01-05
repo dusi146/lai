@@ -1,7 +1,7 @@
 // CẤU HÌNH
 const DAILY_TARGET = 1000000; 
 const STREAK_MIN = 100000;
-const ALLOWED_UIDS = ["dusi146", "themmoi", "Baongayxua"]; // Thêm thoải mái vào đây;
+const ALLOWED_UIDS = ["dusi146", "phuc225", "Baongayxua"]; // Thêm thoải mái vào đây;
 
 // 👇👇👇 DÁN CÁI LINK CỦA MÀY VÀO TRONG DẤU NGOẶC KÉP DƯỚI ĐÂY 👇👇👇
 const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxRI3u9f0cPzlhBlfVONNq1-8mXXn23V-6kufF6VtOGBYB4gi_34TZvuiQxqCFOw5fs/exec"; 
@@ -398,6 +398,7 @@ function syncFromCloud() {
         })
         .catch(err => console.error("Lỗi đồng bộ:", err));
 }
+
 
 
 
