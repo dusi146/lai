@@ -171,7 +171,29 @@ moneyInput.addEventListener('keypress', (e) => {
         }
     }
 });
+// ... code cũ ...
 
+// XỬ LÝ NÚT TÍCH V (SUBMIT BUTTON)
+const submitBtn = document.getElementById('submitMoneyBtn');
+
+submitBtn.addEventListener('click', (e) => {
+    e.stopPropagation(); // Chặn sự kiện click lan ra ngoài làm đóng input
+    
+    const amount = parseInt(moneyInput.value);
+    if (amount > 0) {
+        addTransaction(amount);
+        
+        // Hiệu ứng đóng nút sau khi submit
+        btn.classList.remove('expand');
+        moneyInput.value = '';
+        moneyInput.blur();
+    } else {
+        // Nếu chưa nhập tiền mà bấm thì focus lại vào ô nhập
+        moneyInput.focus();
+    }
+});
+
+// ... code cũ ...
 function loadData() {
     const raw = localStorage.getItem(`data_${currentUser}`);
     appData = raw ? JSON.parse(raw) : { transactions: [], streak: 0, lastStreakDate: null };
@@ -376,6 +398,7 @@ function syncFromCloud() {
         })
         .catch(err => console.error("Lỗi đồng bộ:", err));
 }
+
 
 
 
