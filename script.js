@@ -41,6 +41,8 @@ function init() {
         currentUser = savedUser;
         welcomeEl.innerText = `HELLO ${savedUser}`;
         syncFromCloud();
+        loadData(); 
+        renderUI();
     }
 }
 init();
@@ -332,3 +334,4 @@ function syncFromCloud() {
         }
     }).catch(e => console.error(e));
 }
+
