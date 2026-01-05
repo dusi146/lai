@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Money Grinder VIP</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <div id="loginScreen" class="login-overlay">
+        <div class="login-box">
+                        <input type="text" id="uidInput" placeholder=" " autocomplete="off">
+            <button onclick="login()">GO</button>
+        </div>
+    </div>
+
+    <div id="app" class="app-layout">
+        
+        <header class="top-bar">
+            <div class="streak-pill" onclick="triggerFireEffect()">
+                <div class="icon-fire">
+                    <svg viewBox="0 0 430 430"><defs><clipPath id="g"><path d="M0 0h430v430H0z"/></clipPath></defs><g clip-path="url(#g)"><g fill="#E8682F"><path d="M234.103 42.018c-2.201-.899-4.49 1.052-4.102 3.397 9.68 58.51-27.373 118.783-85.352 135.585-10.174-19.587-14.476-41.964-12.505-63.885.232-2.577-2.615-4.364-4.717-2.856C89.617 141.387 65 185.621 65 235.582 65 318.103 132.158 385 215.001 385c83.5 0 152.385-70.816 149.936-153.886-2.126-85.524-55.579-158.359-130.834-189.096" class="secondary"/></g><path fill="none" stroke="#ED8F66" stroke-linecap="round" stroke-linejoin="round" stroke-width="7" d="M149.937 18.615C147.763-68.841 91.917-143.029 13.97-172.5c12.981 60.16-24.551 123.679-84.321 141-11.202-21.566-15.285-46.511-11.716-70.508C-122.976-75.323-150-29.264-150 23.083-150 105.604-82.842 172.5.001 172.5c83.5 0 152.385-70.815 149.936-153.885" transform="matrix(1.00009 0 0 .99991 215 212.51)"/></g></svg>
+                </div>
+                <span id="streakNumber">0</span>
+            </div>
+            
+            <div class="menu-wrapper">
+                <button class="icon-btn" onclick="toggleMenu()">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <div id="menuDropdown" class="menu-popup">
+                    <ul>
+                        <li onclick="showModal('history')"><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử</li>
+                        <li onclick="showModal('ranking')"><i class="fa-solid fa-trophy"></i> Xếp hạng</li>
+                        <li onclick="toggleTheme()" id="themeToggleBtn"><i class="fa-solid fa-moon"></i> Chế độ Tối</li>
+                        <li onclick="logout()" class="danger"><i class="fa-solid fa-right-from-bracket"></i> Thoát</li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <main class="center-stage">
+            <h2 id="welcomeText" class="welcome-text"></h2>
+            <div class="elastic-btn" id="elasticBtn">
+                <span class="plus-icon">+</span>
+                <input type="number" id="moneyInput" placeholder="Nhập tiền..." inputmode="numeric">
+            </div>
+        </main>
+
+        <footer class="bottom-dash">
+            <div class="info-row">
+                <div class="label">Hôm nay kiếm được</div>
+                <div class="money-value" id="todayTotalDisplay">0 đ</div>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar" id="progStatus"></div>
+            </div>
+            <div class="mini-log" id="miniLog">Sẵn sàng cày cuốc...</div>
+        </footer>
+    </div>
+
+    <div id="historyModal" class="modal-overlay" onclick="closeModal('history')">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-clock-rotate-left"></i> LỊCH SỬ</h3>
+                <button class="close-btn" onclick="closeModal('history')">×</button>
+            </div>
+            <div class="modal-body" id="historyList">
+                </div>
+        </div>
+    </div>
+
+    <div id="rankingModal" class="modal-overlay" onclick="closeModal('ranking')">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-trophy"></i> RANKING vancau88</h3>
+                <button class="close-btn" onclick="closeModal('ranking')">×</button>
+            </div>
+            <div class="modal-body" id="rankingList">
+                </div>
+        </div>
+    </div>
+
+    <audio id="clickSound" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.m4a" type="audio/mp4">
+    </audio>
+
+    <script src="script.js"></script>
+</body>
+</html>
