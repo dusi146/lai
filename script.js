@@ -4,7 +4,7 @@ const STREAK_MIN = 100000;
 const ALLOWED_UIDS = ["dusi146", "themmoi", "themmoi1"]; // Thêm thoải mái vào đây;
 
 // 👇👇👇 DÁN CÁI LINK CỦA MÀY VÀO TRONG DẤU NGOẶC KÉP DƯỚI ĐÂY 👇👇👇
-const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbwGauGl0N2JUG-Jwe8_U40PIrRmCCabvC7Pp4z0P6PQUNgLdXvREoh2Kpxo6OY6xMmd/exec"; 
+const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxRI3u9f0cPzlhBlfVONNq1-8mXXn23V-6kufF6VtOGBYB4gi_34TZvuiQxqCFOw5fs/exec"; 
 // Ví dụ: const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycb.../exec";
 
 // Elements
@@ -331,3 +331,4 @@ function triggerFireEffect() {
     }
 
 }
+
