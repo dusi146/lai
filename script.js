@@ -36,6 +36,7 @@ function init() {
         uidInput.value = savedUser;
         currentUser = savedUser;
         welcomeEl.innerText = `HELLO ${savedUser}`;
+       syncFromCloud();
     }
 }
 init();
@@ -53,6 +54,7 @@ function login() {
     loadData();
     loginScreen.style.display = 'none';
     renderUI();
+    syncFromCloud();
 }
 
 function logout() {
@@ -331,4 +333,48 @@ function triggerFireEffect() {
     }
 
 }
+// --- TÍNH NĂNG ĐỒNG BỘ DỮ LIỆU TỪ SERVER VỀ MÁY ---
+
+// Hàm này sẽ gọi khi Init xong
+function syncFromCloud() {
+    if (!GOOGLE_SHEET_URL || GOOGLE_SHEET_URL.includes("DÁN_LINK")) return;
+
+    console.log("Đang tải dữ liệu từ Google Sheet...");
+    
+    fetch(GOOGLE_SHEET_URL)
+        .then(response => response.json())
+        .then(data => {
+            // Lọc ra tất cả giao dịch của user hiện tại
+            const myTransactions = data.filter(item => item.uid === currentUser);
+            
+            if (myTransactions.length > 0) {
+                // Tạo lại danh sách giao dịch cho App
+                // Lưu ý: Do API hiện tại chỉ trả về uid và amount, ta sẽ fake tạm thời gian
+                // hoặc giữ nguyên giao dịch cũ nếu tổng tiền khớp.
+                // Cách đơn giản nhất: Xóa cũ, đè mới để đảm bảo đồng bộ.
+                
+                let newTransactions = myTransactions.map(item => {
+                    return {
+                        amount: item.amount,
+                        date: new Date().toISOString(), // Tạm thời lấy giờ hiện tại vì API chưa trả về giờ
+                        timestamp: new Date().getTime()
+                    };
+                });
+                
+                // Cập nhật vào biến appData
+                appData.transactions = newTransactions.reverse(); // Đảo ngược để mới nhất lên đầu
+                
+                // Tính lại Streak (tạm tính)
+                // (Phần này nâng cao, tạm thời giữ nguyên streak cũ hoặc reset)
+                
+                saveData(); // Lưu đè vào máy này
+                renderUI(); // Vẽ lại giao diện
+                
+                miniLog.innerText = "Đã đồng bộ dữ liệu từ Server!";
+                console.log("Đồng bộ thành công!");
+            }
+        })
+        .catch(err => console.error("Lỗi đồng bộ:", err));
+}
+
 
