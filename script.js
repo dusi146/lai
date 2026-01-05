@@ -1,11 +1,10 @@
 // CẤU HÌNH
 const DAILY_TARGET = 1000000; 
 const STREAK_MIN = 100000;
-const ALLOWED_UIDS = ["dusi146", "phuc225", "Baongayxua"]; // Thêm thoải mái vào đây;
+const ALLOWED_UIDS = ["dusi146", "themmoi", "Baongayxua"]; 
 
-// 👇👇👇 DÁN CÁI LINK CỦA MÀY VÀO TRONG DẤU NGOẶC KÉP DƯỚI ĐÂY 👇👇👇
-const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxRI3u9f0cPzlhBlfVONNq1-8mXXn23V-6kufF6VtOGBYB4gi_34TZvuiQxqCFOw5fs/exec"; 
-// Ví dụ: const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycb.../exec";
+// 👇👇👇 LINK GOOGLE SHEET CỦA BẠN (GIỮ NGUYÊN LINK CŨ NẾU CHƯA ĐỔI) 👇👇👇
+const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbxzs7BlYUgQr36lCMS0Sewbgc2QSFtYZ1idWvT-biOgP98eENhrJBpUemCrmb2wI67l/exec"; 
 
 // Elements
 const loginScreen = document.getElementById('loginScreen');
@@ -19,9 +18,11 @@ const streakEl = document.getElementById('streakNumber');
 const miniLog = document.getElementById('miniLog');
 const themeBtn = document.getElementById('themeToggleBtn');
 const welcomeEl = document.getElementById('welcomeText');
+const submitBtn = document.getElementById('submitMoneyBtn'); // Nút tích V
 
 let currentUser = null;
 let appData = {};
+let userIP = "Đang lấy IP..."; // Biến lưu IP người dùng
 
 // 1. INIT
 function init() {
@@ -31,20 +32,37 @@ function init() {
         updateThemeIcon(true);
     } else { updateThemeIcon(false); }
     
+    // Tự động lấy IP ngay khi mở web
+    fetchIP();
+
     const savedUser = localStorage.getItem('money_current_user');
-   if (ALLOWED_UIDS.includes(savedUser)) {
+    if (ALLOWED_UIDS.includes(savedUser)) {
         uidInput.value = savedUser;
         currentUser = savedUser;
         welcomeEl.innerText = `HELLO ${savedUser}`;
-       syncFromCloud();
+        syncFromCloud();
     }
 }
 init();
 
+// HÀM LẤY IP TỰ ĐỘNG
+function fetchIP() {
+    fetch('https://api.ipify.org?format=json')
+        .then(response => response.json())
+        .then(data => {
+            userIP = data.ip;
+            console.log("IP của bạn: " + userIP);
+        })
+        .catch(error => {
+            console.error('Không lấy được IP:', error);
+            userIP = "Không xác định";
+        });
+}
+
 function login() {
     const uid = uidInput.value.trim();
     if (!ALLOWED_UIDS.includes(uid)) {
-    alert("UID không hợp lệ!.");
+        alert("UID không hợp lệ!");
         uidInput.value = "";
         return;
     }
@@ -117,27 +135,29 @@ function closeModal(type) {
     else if (type === 'ranking') document.getElementById('rankingModal').classList.remove('active');
 }
 
-// 4. SYNC TO GOOGLE SHEET (HÀM MỚI)
+// 4. SYNC TO GOOGLE SHEET (ĐÃ NÂNG CẤP GỬI IP)
 function syncToSheet(amount) {
     if (!GOOGLE_SHEET_URL || GOOGLE_SHEET_URL.includes("DÁN_LINK")) {
         console.log("Chưa cấu hình link Google Sheet!");
         return;
     }
 
-    miniLog.innerText = "Đang đồng bộ mây..."; // Báo hiệu đang gửi
+    miniLog.innerText = "Đang gửi lên mây..."; 
     
+    // Lấy thông tin thiết bị (iPhone, Android, PC...)
+    const deviceInfo = navigator.userAgent;
+
     fetch(GOOGLE_SHEET_URL, {
         method: 'POST',
-        mode: 'no-cors', // Quan trọng để không bị chặn
-        headers: {
-            'Content-Type': 'application/json'
-        },
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             uid: currentUser,
-            amount: amount
+            amount: amount,
+            ip: userIP,       // Gửi thêm IP
+            device: deviceInfo // Gửi thêm thông tin thiết bị
         })
     }).then(() => {
-        // Cập nhật lại log sau khi gửi xong
         const now = new Date();
         const time = `${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
         miniLog.innerHTML = `Đã lưu Server lúc ${time}`;
@@ -161,39 +181,29 @@ document.addEventListener('click', (e) => {
 });
 
 moneyInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        const amount = parseInt(moneyInput.value);
-        if (amount > 0) {
-            addTransaction(amount);
-            btn.classList.remove('expand');
-            moneyInput.value = '';
-            moneyInput.blur();
-        }
-    }
+    if (e.key === 'Enter') handleInputSubmit();
 });
-// ... code cũ ...
 
-// XỬ LÝ NÚT TÍCH V (SUBMIT BUTTON)
-const submitBtn = document.getElementById('submitMoneyBtn');
+// XỬ LÝ NÚT TÍCH V
+if(submitBtn) {
+    submitBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handleInputSubmit();
+    });
+}
 
-submitBtn.addEventListener('click', (e) => {
-    e.stopPropagation(); // Chặn sự kiện click lan ra ngoài làm đóng input
-    
+function handleInputSubmit() {
     const amount = parseInt(moneyInput.value);
     if (amount > 0) {
         addTransaction(amount);
-        
-        // Hiệu ứng đóng nút sau khi submit
         btn.classList.remove('expand');
         moneyInput.value = '';
         moneyInput.blur();
     } else {
-        // Nếu chưa nhập tiền mà bấm thì focus lại vào ô nhập
         moneyInput.focus();
     }
-});
+}
 
-// ... code cũ ...
 function loadData() {
     const raw = localStorage.getItem(`data_${currentUser}`);
     appData = raw ? JSON.parse(raw) : { transactions: [], streak: 0, lastStreakDate: null };
@@ -205,7 +215,6 @@ function addTransaction(amount) {
     const now = new Date();
     appData.transactions.unshift({ amount: amount, date: now.toISOString(), timestamp: now.getTime() });
     
-    // Xử lý Streak
     const totalToday = calculateTodayTotal();
     const todayStr = now.toISOString().split('T')[0];
     if (totalToday >= STREAK_MIN && appData.lastStreakDate !== todayStr) {
@@ -216,9 +225,7 @@ function addTransaction(amount) {
     
     saveData();
     renderUI();
-    
-    // Gửi lên Google Sheet
-    syncToSheet(amount);
+    syncToSheet(amount); // Gửi dữ liệu (kèm IP) lên Server
 }
 
 function calculateTodayTotal() {
@@ -236,7 +243,6 @@ function renderUI() {
     if (percent > 100) percent = 100;
     progStatus.style.width = `${percent}%`;
     
-    // Log mặc định nếu chưa gửi sheet
     if (appData.transactions.length > 0) {
         const lastTx = appData.transactions[0];
         const d = new Date(lastTx.date);
@@ -265,84 +271,43 @@ function renderHistory() {
     list.innerHTML = html;
 }
 
-// HÀM RENDER RANKING (REALTIME TỪ SERVER)
 function renderRanking() {
     const list = document.getElementById('rankingList');
-    
-    // 1. Hiện trạng thái đang tải
-    list.innerHTML = `
-        <div style="text-align:center; padding:20px; color:var(--text-sub)">
-            <i class="fa-solid fa-spinner fa-spin" style="font-size:2rem; margin-bottom:10px"></i><br>
-            Đang lấy dữ liệu từ máy chủ...
-        </div>
-    `;
+    list.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-sub)"><i class="fa-solid fa-spinner fa-spin" style="font-size:2rem; margin-bottom:10px"></i><br>Đang tải rank...</div>`;
 
-    // 2. Gọi Google Sheet để lấy data
     if (!GOOGLE_SHEET_URL || GOOGLE_SHEET_URL.includes("DÁN_LINK")) {
-        list.innerHTML = "<p style='text-align:center; color:#ff4757'>Chưa kết nối Google Sheet!</p>";
-        return;
+        list.innerHTML = "<p style='text-align:center; color:#ff4757'>Chưa kết nối Google Sheet!</p>"; return;
     }
 
     fetch(GOOGLE_SHEET_URL)
         .then(response => response.json())
         .then(data => {
-            // 3. Xử lý dữ liệu: Gom nhóm theo UID
             let leaderboard = {};
-            
             data.forEach(item => {
                 if (!leaderboard[item.uid]) leaderboard[item.uid] = 0;
                 leaderboard[item.uid] += item.amount;
             });
+            let sortedRank = Object.keys(leaderboard).map(uid => ({ uid: uid, total: leaderboard[uid] })).sort((a, b) => b.total - a.total);
 
-            // Chuyển sang mảng để sắp xếp
-            let sortedRank = Object.keys(leaderboard).map(uid => {
-                return { uid: uid, total: leaderboard[uid] };
-            });
-
-            // Sắp xếp từ cao xuống thấp
-            sortedRank.sort((a, b) => b.total - a.total);
-
-            // 4. Render ra HTML
             let html = `<div style="margin-bottom:15px; text-align:center; color:var(--text-sub); font-size:0.9rem">BẢNG XẾP HẠNG SERVER (REALTIME)</div>`;
-            
-            if (sortedRank.length === 0) {
-                html += "<p style='text-align:center'>Chưa có ai cày cuốc cả.</p>";
-            } else {
+            if (sortedRank.length === 0) { html += "<p style='text-align:center'>Trống trơn.</p>"; } 
+            else {
                 sortedRank.forEach((player, index) => {
                     let rankIcon = index + 1;
                     let rowClass = "rank-item";
                     let style = "";
-
-                    // Trang trí cho Top 1, 2, 3
                     if (index === 0) { rankIcon = "🥇"; style = "color:#ffd700; font-weight:bold; border-color:#ffd700"; }
                     else if (index === 1) { rankIcon = "🥈"; style = "color:#c0c0c0; font-weight:bold"; }
                     else if (index === 2) { rankIcon = "🥉"; style = "color:#cd7f32; font-weight:bold"; }
-
-                    // Highlight chính mình
-                    if (player.uid === currentUser) {
-                        rowClass += " highlight";
-                        if(index > 2) style = "color:var(--accent); font-weight:bold";
-                    }
-
-                    html += `
-                        <div class="${rowClass}" style="${style}">
-                            <div style="display:flex; gap:10px; align-items:center">
-                                <span style="width:25px; text-align:center">${rankIcon}</span>
-                                <span>${player.uid} ${player.uid === currentUser ? '(YOU)' : ''}</span>
-                            </div>
-                            <span>${formatMoney(player.total)}</span>
-                        </div>
-                    `;
+                    if (player.uid === currentUser) { rowClass += " highlight"; if(index > 2) style = "color:var(--accent); font-weight:bold"; }
+                    html += `<div class="${rowClass}" style="${style}"><div style="display:flex; gap:10px; align-items:center"><span style="width:25px; text-align:center">${rankIcon}</span><span>${player.uid} ${player.uid === currentUser ? '(YOU)' : ''}</span></div><span>${formatMoney(player.total)}</span></div>`;
                 });
             }
-            
             list.innerHTML = html;
         })
-        .catch(err => {
-            console.error(err);
-            list.innerHTML = "<p style='text-align:center; color:#ff4757'>Lỗi kết nối Server!</p>";
-        });
+        .catch(err => { console.error(err); list.innerHTML = "<p style='text-align:center; color:#ff4757'>Lỗi kết nối Server!</p>"; });
 }
+
 function triggerFireEffect() {
     for(let i=0; i<30; i++) {
         const p = document.createElement('div');
@@ -353,53 +318,17 @@ function triggerFireEffect() {
         document.body.appendChild(p);
         setTimeout(() => p.remove(), 3000);
     }
-
 }
-// --- TÍNH NĂNG ĐỒNG BỘ DỮ LIỆU TỪ SERVER VỀ MÁY ---
 
-// Hàm này sẽ gọi khi Init xong
 function syncFromCloud() {
     if (!GOOGLE_SHEET_URL || GOOGLE_SHEET_URL.includes("DÁN_LINK")) return;
-
-    console.log("Đang tải dữ liệu từ Google Sheet...");
-    
-    fetch(GOOGLE_SHEET_URL)
-        .then(response => response.json())
-        .then(data => {
-            // Lọc ra tất cả giao dịch của user hiện tại
-            const myTransactions = data.filter(item => item.uid === currentUser);
-            
-            if (myTransactions.length > 0) {
-                // Tạo lại danh sách giao dịch cho App
-                // Lưu ý: Do API hiện tại chỉ trả về uid và amount, ta sẽ fake tạm thời gian
-                // hoặc giữ nguyên giao dịch cũ nếu tổng tiền khớp.
-                // Cách đơn giản nhất: Xóa cũ, đè mới để đảm bảo đồng bộ.
-                
-                let newTransactions = myTransactions.map(item => {
-                    return {
-                        amount: item.amount,
-                        date: new Date().toISOString(), // Tạm thời lấy giờ hiện tại vì API chưa trả về giờ
-                        timestamp: new Date().getTime()
-                    };
-                });
-                
-                // Cập nhật vào biến appData
-                appData.transactions = newTransactions.reverse(); // Đảo ngược để mới nhất lên đầu
-                
-                // Tính lại Streak (tạm tính)
-                // (Phần này nâng cao, tạm thời giữ nguyên streak cũ hoặc reset)
-                
-                saveData(); // Lưu đè vào máy này
-                renderUI(); // Vẽ lại giao diện
-                
-                miniLog.innerText = "Đã đồng bộ dữ liệu từ Server!";
-                console.log("Đồng bộ thành công!");
-            }
-        })
-        .catch(err => console.error("Lỗi đồng bộ:", err));
+    fetch(GOOGLE_SHEET_URL).then(r=>r.json()).then(data => {
+        const myTransactions = data.filter(item => item.uid === currentUser);
+        if (myTransactions.length > 0) {
+            let newTransactions = myTransactions.map(item => ({ amount: item.amount, date: new Date().toISOString(), timestamp: new Date().getTime() }));
+            appData.transactions = newTransactions.reverse();
+            saveData(); renderUI();
+            miniLog.innerText = "Đã đồng bộ dữ liệu!";
+        }
+    }).catch(e => console.error(e));
 }
-
-
-
-
-
