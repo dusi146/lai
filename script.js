@@ -264,10 +264,84 @@ function renderHistory() {
     list.innerHTML = html;
 }
 
+// --- HÀM TÍNH TOÁN THÀNH TÍCH CÁ NHÂN (MỚI) ---
+function getPersonalStats() {
+    if (!appData.transactions || appData.transactions.length === 0) {
+        return { 
+            bestDay: { amount: 0, date: 'Chưa có' }, 
+            bestWeek: { amount: 0, week: 'Chưa có' } 
+        };
+    }
+
+    let dailySum = {};
+    let weeklySum = {};
+
+    appData.transactions.forEach(tx => {
+        const d = new Date(tx.date);
+        
+        // 1. Tính tổng theo ngày (YYYY-MM-DD)
+        const dayKey = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        if (!dailySum[dayKey]) dailySum[dayKey] = 0;
+        dailySum[dayKey] += tx.amount;
+
+        // 2. Tính tổng theo tuần (Tuần số mấy trong năm)
+        const oneJan = new Date(d.getFullYear(), 0, 1);
+        const numberOfDays = Math.floor((d - oneJan) / (24 * 60 * 60 * 1000));
+        const weekNum = Math.ceil((d.getDay() + 1 + numberOfDays) / 7);
+        const weekKey = `Tuần ${weekNum} / ${d.getFullYear()}`;
+        
+        if (!weeklySum[weekKey]) weeklySum[weekKey] = 0;
+        weeklySum[weekKey] += tx.amount;
+    });
+
+    // Tìm ngày đỉnh nhất
+    let bestDayKey = Object.keys(dailySum).reduce((a, b) => dailySum[a] > dailySum[b] ? a : b);
+    
+    // Tìm tuần đỉnh nhất
+    let bestWeekKey = Object.keys(weeklySum).reduce((a, b) => weeklySum[a] > weeklySum[b] ? a : b);
+
+    // Format lại ngày hiển thị cho đẹp
+    let bestDayParts = bestDayKey.split('-');
+    let bestDayDisplay = `${bestDayParts[2]}/${bestDayParts[1]}/${bestDayParts[0]}`;
+
+    return {
+        bestDay: { amount: dailySum[bestDayKey], date: bestDayDisplay },
+        bestWeek: { amount: weeklySum[bestWeekKey], week: bestWeekKey }
+    };
+}
+
+// --- HÀM RENDER RANKING (ĐÃ UPDATE HIỆN THÊM CÁ NHÂN) ---
 function renderRanking() {
     const list = document.getElementById('rankingList');
     list.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-sub)"><i class="fa-solid fa-spinner fa-spin" style="font-size:2rem; margin-bottom:10px"></i><br>Đang tải rank...</div>`;
-    if (!GOOGLE_SHEET_URL) { list.innerHTML = "Lỗi Link"; return; }
+
+    // 1. Tính toán chỉ số cá nhân trước (Lấy từ máy, không cần mạng)
+    const stats = getPersonalStats();
+    
+    const personalHtml = `
+        <div style="margin-bottom:10px; text-align:center; color:var(--text-sub); font-size:0.9rem; font-weight:bold; letter-spacing:1px">HỒ SƠ CÁ NHÂN</div>
+        <div class="personal-stats-grid">
+            <div class="stat-card">
+                <div class="icon">🚀</div>
+                <div class="label">Ngày đỉnh nhất</div>
+                <div class="value">${formatMoney(stats.bestDay.amount)}</div>
+                <div class="sub-text">${stats.bestDay.date}</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon">🔥</div>
+                <div class="label">Tuần khủng nhất</div>
+                <div class="value">${formatMoney(stats.bestWeek.amount)}</div>
+                <div class="sub-text">${stats.bestWeek.week}</div>
+            </div>
+        </div>
+        <hr style="border:0; border-top:1px dashed var(--border); margin:20px 0;">
+    `;
+
+    // 2. Gọi Server lấy bảng xếp hạng Global
+    if (!GOOGLE_SHEET_URL) { 
+        list.innerHTML = personalHtml + "<p style='text-align:center; color:#ff4757'>Lỗi Link Server</p>"; 
+        return; 
+    }
 
     fetch(GOOGLE_SHEET_URL).then(r => r.json()).then(data => {
         let leaderboard = {};
@@ -277,8 +351,9 @@ function renderRanking() {
         });
         let sortedRank = Object.keys(leaderboard).map(uid => ({ uid: uid, total: leaderboard[uid] })).sort((a, b) => b.total - a.total);
 
-        let html = `<div style="margin-bottom:15px; text-align:center; color:var(--text-sub); font-size:0.9rem">BẢNG XẾP HẠNG SERVER (REALTIME)</div>`;
-        if (sortedRank.length === 0) { html += "<p style='text-align:center'>Trống trơn.</p>"; } 
+        let rankHtml = `<div style="margin-bottom:15px; text-align:center; color:var(--text-sub); font-size:0.9rem; font-weight:bold; letter-spacing:1px">BẢNG XẾP HẠNG SERVER</div>`;
+        
+        if (sortedRank.length === 0) { rankHtml += "<p style='text-align:center'>Trống trơn.</p>"; } 
         else {
             sortedRank.forEach((player, index) => {
                 let rankIcon = index + 1;
@@ -289,7 +364,7 @@ function renderRanking() {
                 else if (index === 2) { rankIcon = "🥉"; style = "color:#cd7f32; font-weight:bold"; }
                 if (player.uid === currentUser) { rowClass += " highlight"; }
                 
-                html += `<div class="${rowClass}" style="${style}">
+                rankHtml += `<div class="${rowClass}" style="${style}">
                     <div style="display:flex; gap:10px; align-items:center">
                         <span style="width:25px; text-align:center">${rankIcon}</span>
                         <span>${player.uid} ${player.uid === currentUser ? '(YOU)' : ''}</span>
@@ -298,6 +373,13 @@ function renderRanking() {
                 </div>`;
             });
         }
-        list.innerHTML = html;
-    }).catch(err => list.innerHTML = "Lỗi kết nối Server!");
+        
+        // Gộp cả 2 phần lại: Cá nhân + Server
+        list.innerHTML = personalHtml + rankHtml;
+
+    }).catch(err => {
+        console.error(err);
+        // Nếu lỗi mạng vẫn hiện phần cá nhân
+        list.innerHTML = personalHtml + "<p style='text-align:center; color:#ff4757'>Lỗi kết nối Server!</p>"; 
+    });
 }
