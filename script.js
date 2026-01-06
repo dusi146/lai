@@ -1,7 +1,7 @@
 // CẤU HÌNH
 const DAILY_TARGET = 1000000; 
 const STREAK_MIN = 100000;
-const ALLOWED_UIDS = ["dusi146", "themmoi", "Baongayxua"]; 
+const ALLOWED_UIDS = ["dusi146", "Phuc", "Baongayxua"]; 
 
 // 👇👇👇 LINK GOOGLE SHEET CỦA BẠN 👇👇👇
 const GOOGLE_SHEET_URL = "https://script.google.com/macros/s/AKfycbwqaiwAqHQS3Q8OLtlY22ITtxNllfMwURC9-6vzQwlhHFIYY_RDhs_PG_xbFqYYikFP/exec"; 
@@ -383,3 +383,4 @@ function renderRanking() {
         list.innerHTML = personalHtml + "<p style='text-align:center; color:#ff4757'>Lỗi kết nối Server!</p>"; 
     });
 }
+
