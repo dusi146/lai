@@ -187,3 +187,27 @@ input[type=number] { -moz-appearance: textfield; }
 .submit-btn:active {
     transform: translateY(-50%) scale(0.8);
 }
+/* --- CSS CHO PHẦN THÀNH TÍCH CÁ NHÂN TRONG RANKING --- */
+.personal-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.stat-card .icon { font-size: 1.5rem; margin-bottom: 5px; color: var(--fire); }
+.stat-card .label { font-size: 0.75rem; color: var(--text-sub); text-transform: uppercase; }
+.stat-card .value { font-size: 1.1rem; font-weight: 800; color: var(--text-main); margin-top: 5px; }
+.stat-card .sub-text { font-size: 0.7rem; color: var(--text-sub); margin-top: 2px; }
